@@ -19,6 +19,7 @@ export default function BuildPage() {
   
   // UI state
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isGeneratingBlueprints, setIsGeneratingBlueprints] = useState(false);
   const [steps, setSteps] = useState<string>('');
   const [error, setError] = useState<string>('');
 
@@ -294,51 +295,67 @@ export default function BuildPage() {
                 <h2 className="text-3xl font-bold text-gray-800 mb-6 uppercase" style={{ fontFamily: 'var(--font-orbitron)' }}>
                   Step 4: Generate Blueprints
                 </h2>
-                {constructionPlan ? (
-                  <div className="space-y-6">
-                    <div className="bg-cyan-50 border-2 border-cyan-400/30 rounded-lg p-6">
-                      <h3 className="text-xl font-bold text-gray-800 mb-4 uppercase" style={{ fontFamily: 'var(--font-orbitron)' }}>
-                        Construction Plan Generated
-                      </h3>
-                      <p className="text-gray-700 mb-4" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-                        Your construction plan has been created. Click the button below to generate detailed blueprint images for each construction phase.
-                      </p>
-                      <button
-                        onClick={async () => {
-                          setIsAnalyzing(true);
-                          setError('');
-                          try {
-                            const res = await fetch('/api/analyze-house', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ 
-                                prompt: `Generate detailed technical blueprints as markdown diagrams for each phase of this construction: ${constructionPlan}` 
-                              }),
-                            });
-                            const data = await res.json();
-                            if (!res.ok) throw new Error(data.error || 'Failed to generate blueprints');
-                            setSteps(data.steps || 'No blueprints generated');
-                          } catch (err: any) {
-                            setError(err?.message || 'Failed to generate blueprints');
-                          } finally {
-                            setIsAnalyzing(false);
-                          }
-                        }}
-                        disabled={isAnalyzing}
-                        className="px-6 py-3 bg-cyan-600 text-white rounded-lg font-bold hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed uppercase flex items-center gap-2"
-                        style={{ fontFamily: 'var(--font-roboto-mono)' }}
-                      >
-                        {isAnalyzing ? 'Generating Blueprints...' : 'Generate Blueprint Images'}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center text-gray-600">
-                    <p style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-                      Please complete the previous steps first.
+                <div className="space-y-6">
+                  <div className="bg-cyan-50 border-2 border-cyan-400/30 rounded-lg p-6">
+                    <h3 className="text-xl font-bold text-gray-800 mb-4 uppercase" style={{ fontFamily: 'var(--font-orbitron)' }}>
+                      Construction Plan Generated
+                    </h3>
+                    <p className="text-gray-700 mb-4" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
+                      Review your construction plan below. Click the button to generate detailed blueprint images for each construction phase.
                     </p>
+                    <button
+                      onClick={async () => {
+                        setIsGeneratingBlueprints(true);
+                        setError('');
+                        try {
+                          const res = await fetch('/api/analyze-house', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                              prompt: `Generate detailed technical blueprints as markdown diagrams for each phase of this construction. For each phase, create comprehensive technical diagrams with measurements, materials, tools, safety considerations, and step-by-step instructions: ${constructionPlan}` 
+                            }),
+                          });
+                          const data = await res.json();
+                          if (!res.ok) throw new Error(data.error || 'Failed to generate blueprints');
+                          setSteps(data.steps || 'No blueprints generated');
+                        } catch (err: any) {
+                          setError(err?.message || 'Failed to generate blueprints');
+                        } finally {
+                          setIsGeneratingBlueprints(false);
+                        }
+                      }}
+                      disabled={isGeneratingBlueprints}
+                      className="px-6 py-3 bg-cyan-600 text-white rounded-lg font-bold hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed uppercase flex items-center gap-2"
+                      style={{ fontFamily: 'var(--font-roboto-mono)' }}
+                    >
+                      {isGeneratingBlueprints ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Generating Blueprints...
+                        </>
+                      ) : (
+                        'Generate Blueprint Images'
+                      )}
+                    </button>
                   </div>
-                )}
+                  
+                  {/* Show Construction Plan Below Button */}
+                  {constructionPlan && (
+                    <div className="bg-white border-2 border-cyan-400/30 rounded-lg shadow-xl p-6">
+                      <h3 className="text-2xl font-bold text-gray-800 mb-4 uppercase" style={{ fontFamily: 'var(--font-orbitron)' }}>
+                        Your Construction Plan
+                      </h3>
+                      <div className="prose max-w-none">
+                        <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
+                          {constructionPlan}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -362,70 +379,178 @@ export default function BuildPage() {
                 Back
               </button>
               {step < 4 ? (
-                <button
-                  onClick={nextStep}
-                  className="px-6 py-3 bg-cyan-600 text-white rounded-lg font-bold hover:bg-cyan-700 uppercase"
-                  style={{ fontFamily: 'var(--font-roboto-mono)' }}
-                >
-                  Next
-                </button>
-              ) : step === 3 ? (
-                <button
-                  onClick={handleAnalyze}
-                  disabled={isAnalyzing}
-                  className="px-6 py-3 bg-cyan-600 text-white rounded-lg font-bold hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed uppercase flex items-center gap-2"
-                  style={{ fontFamily: 'var(--font-roboto-mono)' }}
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Generating Plan...
-                    </>
-                  ) : (
-                    'Generate Construction Plan'
-                  )}
-                </button>
+                step === 3 ? (
+                  <button
+                    onClick={handleAnalyze}
+                    disabled={isAnalyzing}
+                    className="px-6 py-3 bg-cyan-600 text-white rounded-lg font-bold hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed uppercase flex items-center gap-2"
+                    style={{ fontFamily: 'var(--font-roboto-mono)' }}
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Generating Plan...
+                      </>
+                    ) : (
+                      'Generate Construction Plan'
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    onClick={nextStep}
+                    className="px-6 py-3 bg-cyan-600 text-white rounded-lg font-bold hover:bg-cyan-700 uppercase"
+                    style={{ fontFamily: 'var(--font-roboto-mono)' }}
+                  >
+                    Next
+                  </button>
+                )
               ) : (
                 <div></div>
               )}
             </div>
           </div>
-        ) : constructionPlan && !steps ? (
+        ) : constructionPlan && !steps && step === 4 ? (
           <div className="space-y-6">
             <div className="bg-white/95 backdrop-blur-sm border-2 border-cyan-400/30 rounded-lg shadow-2xl p-6 md:p-8">
-              <h2 className="text-3xl font-bold text-gray-800 mb-2 uppercase" style={{ fontFamily: 'var(--font-orbitron)' }}>
-                Construction Plan
+              <h2 className="text-3xl font-bold text-gray-800 mb-6 uppercase" style={{ fontFamily: 'var(--font-orbitron)' }}>
+                Step 4: Generate Blueprints
               </h2>
-              <div className="prose max-w-none">
-                <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-                  {constructionPlan}
-                </pre>
+              <div className="bg-cyan-50 border-2 border-cyan-400/30 rounded-lg p-6 mb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4 uppercase" style={{ fontFamily: 'var(--font-orbitron)' }}>
+                  Construction Plan Generated
+                </h3>
+                <p className="text-gray-700 mb-4" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
+                  Review your construction plan below. Click the button to generate detailed blueprint images for each construction phase.
+                </p>
+                <button
+                  onClick={async () => {
+                    setIsGeneratingBlueprints(true);
+                    setError('');
+                    try {
+                      const res = await fetch('/api/analyze-house', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                          prompt: `BLUEPRINT REQUEST: Generate detailed technical blueprint diagrams for each construction phase based on this plan: ${constructionPlan}
+
+For EACH construction phase, create a technical blueprint showing:
+1. Detailed ASCII/diagram-based technical drawings with:
+   - Scale diagrams and architectural views (top view, side view, elevation)
+   - Exact measurements and dimensions (use imperial and metric)
+   - Material specifications and thicknesses
+   - Connection details and joint specifications
+   - Reference lines, grid coordinates, and orientation markers
+
+2. Technical specifications including:
+   - Material grades and sizes
+   - Load-bearing capacities
+   - Structural requirements
+   - Reinforcement details
+
+3. Assembly instructions:
+   - Step-by-step assembly sequence with diagram references
+   - Tool requirements for each step
+   - Quality control checkpoints
+
+Create these blueprints using ASCII art, technical symbols, and detailed annotations as you would see on professional construction blueprints. Each diagram should be clear, technical, and include all necessary dimensions for construction.` 
+                        }),
+                      });
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data.error || 'Failed to generate blueprints');
+                      setSteps(data.steps || 'No blueprints generated');
+                    } catch (err: any) {
+                      setError(err?.message || 'Failed to generate blueprints');
+                    } finally {
+                      setIsGeneratingBlueprints(false);
+                    }
+                  }}
+                  disabled={isGeneratingBlueprints}
+                  className="px-6 py-3 bg-cyan-600 text-white rounded-lg font-bold hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed uppercase flex items-center gap-2"
+                  style={{ fontFamily: 'var(--font-roboto-mono)' }}
+                >
+                  {isGeneratingBlueprints ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Generating Blueprints...
+                    </>
+                  ) : (
+                    'Generate Blueprint Images'
+                  )}
+                </button>
+              </div>
+              
+              <div className="bg-white border-2 border-cyan-400/30 rounded-lg shadow-xl p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-2xl font-bold text-gray-800 uppercase" style={{ fontFamily: 'var(--font-orbitron)' }}>
+                    Your Construction Plan
+                  </h3>
+                  <button
+                    onClick={() => {
+                      const blob = new Blob([constructionPlan], { type: 'text/plain' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `construction-plan-${new Date().getTime()}.txt`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 uppercase text-sm font-bold flex items-center gap-2"
+                    style={{ fontFamily: 'var(--font-roboto-mono)' }}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download
+                  </button>
+                </div>
+                <div className="prose max-w-none overflow-y-auto" style={{ maxHeight: '60vh' }}>
+                  <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
+                    {constructionPlan}
+                  </pre>
+                </div>
               </div>
             </div>
-            {step === 4 && (
-              <div className="bg-white/95 backdrop-blur-sm border-2 border-cyan-400/30 rounded-lg shadow-2xl p-6 md:p-8">
-                <h2 className="text-3xl font-bold text-gray-800 mb-2 uppercase" style={{ fontFamily: 'var(--font-orbitron)' }}>
-                  Ready for Blueprints
-                </h2>
-                <p className="text-gray-700 mb-4" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-                  Click the "Generate Blueprint Images" button above to create detailed blueprints for each construction phase.
-                </p>
-              </div>
-            )}
           </div>
-        ) : (
+        ) : constructionPlan && steps ? (
           <div className="bg-white/95 backdrop-blur-sm border-2 border-cyan-400/30 rounded-lg shadow-2xl p-6 md:p-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-2 uppercase" style={{ fontFamily: 'var(--font-orbitron)' }}>
-              Construction Blueprints
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-3xl font-bold text-gray-800 uppercase" style={{ fontFamily: 'var(--font-orbitron)' }}>
+                Construction Blueprints
+              </h2>
+              <button
+                onClick={() => {
+                  const blob = new Blob([steps], { type: 'text/plain' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `construction-blueprints-${new Date().getTime()}.txt`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                }}
+                className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 uppercase text-sm font-bold flex items-center gap-2"
+                style={{ fontFamily: 'var(--font-roboto-mono)' }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download Blueprints
+              </button>
+            </div>
             <p className="text-sm text-gray-600 mb-6" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-              Detailed technical specifications and step-by-step instructions
+              Technical blueprint diagrams with dimensions, measurements, and construction specifications
             </p>
             
-            <div className="prose max-w-none">
+            <div className="prose max-w-none overflow-y-auto" style={{ maxHeight: '70vh' }}>
               <div className="space-y-6">
                 {steps.split('###').map((section, index) => {
                   if (!section.trim()) return null;
@@ -438,7 +563,7 @@ export default function BuildPage() {
                       <h3 className="text-2xl font-bold text-gray-800 mb-4 uppercase" style={{ fontFamily: 'var(--font-orbitron)' }}>
                         {title}
                       </h3>
-                      <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
+                      <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-xs font-mono bg-white p-4 border border-gray-200 overflow-x-auto" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
                         {content}
                       </pre>
                     </div>
@@ -446,8 +571,8 @@ export default function BuildPage() {
                 })}
                 
                 {!steps.includes('###') && (
-                  <div className="border-2 border-cyan-400/30 rounded-lg p-6">
-                    <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
+                  <div className="border-2 border-cyan-400/30 rounded-lg p-6 bg-white">
+                    <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-xs font-mono p-4 border border-gray-200 overflow-x-auto" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
                       {steps}
                     </pre>
                   </div>
@@ -471,7 +596,7 @@ export default function BuildPage() {
               Start Over
             </button>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

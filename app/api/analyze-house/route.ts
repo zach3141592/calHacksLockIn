@@ -7,9 +7,19 @@ const anthropic = new Anthropic({
 
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
-    const file = formData.get('image') as File | null;
-    const text = formData.get('text') as string | null;
+    const contentType = request.headers.get('content-type');
+    let file: File | null = null;
+    let text: string | null = null;
+
+    // Handle both FormData and JSON
+    if (contentType && contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      file = formData.get('image') as File | null;
+      text = formData.get('text') as string | null;
+    } else if (contentType && contentType.includes('application/json')) {
+      const jsonBody = await request.json();
+      text = jsonBody.prompt;
+    }
 
     // Need either image or text (or both)
     if (!file && !text) {
@@ -46,15 +56,26 @@ export async function POST(request: NextRequest) {
 
     // Build the prompt text
     let promptText = '';
+    
+    // Check if this is a blueprint request
+    const isBlueprintRequest = text && text.toLowerCase().includes('blueprint');
+    
     if (text) {
-      promptText = `The user wants to build: ${text}. `;
+      if (isBlueprintRequest) {
+        // For blueprints, request ASCII/diagram-based technical drawings
+        promptText = text;
+      } else {
+        // For construction plan, provide detailed instructions
+        promptText = `The user wants to build: ${text}. `;
+      }
     }
     
-    if (file) {
+    if (file && !isBlueprintRequest) {
       promptText += 'Analyze the provided image and provide detailed step-by-step instructions on how to build what is shown. ';
     }
     
-    promptText += `Break down the construction process into logical phases including: foundation, framing, exterior work, interior work, and finishing. Be specific and technical, as if explaining to a construction team.
+    if (!isBlueprintRequest) {
+      promptText += `Break down the construction process into logical phases including: foundation, framing, exterior work, interior work, and finishing. Be specific and technical, as if explaining to a construction team.
 
 For EACH phase, provide:
 1. A detailed technical description of what needs to be built
@@ -64,7 +85,8 @@ For EACH phase, provide:
 5. Important safety considerations
 6. Quality control checkpoints
 
-Format the response as structured data that can be used to generate technical blueprints for each phase.`;
+Format the response as structured text.`;
+    }
 
     content.push({
       type: 'text',
