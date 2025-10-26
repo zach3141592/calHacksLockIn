@@ -1,81 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [additionalText, setAdditionalText] = useState<string>('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [steps, setSteps] = useState<string>('');
-  const [error, setError] = useState<string>('');
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      setSteps('');
-      setError('');
-    }
-  };
-
-  const handleAnalyze = async () => {
-    // Need either image or text (or both)
-    if (!selectedImage && !additionalText.trim()) {
-      setError('Please upload an image, enter text, or both.');
-      return;
-    }
-
-    setIsAnalyzing(true);
-    setError('');
-
-    try {
-      const formData = new FormData();
-      
-      // Add image if selected
-      if (selectedImage) {
-        const response = await fetch(selectedImage);
-        const blob = await response.blob();
-        const file = new File([blob], 'house.jpg', { type: blob.type });
-        formData.append('image', file);
-      }
-      
-      // Add text if provided
-      if (additionalText.trim()) {
-        formData.append('text', additionalText);
-      }
-
-      const res = await fetch('/api/analyze-house', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to analyze image');
-      }
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      setSteps(data.steps || 'No steps generated');
-    } catch (err: any) {
-      const errorMessage = err?.message || 'Failed to analyze the house image. Please try again.';
-      setError(errorMessage);
-      console.error('Error:', err);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
+  const router = useRouter();
 
   return (
     <div 
-      className="min-h-screen p-4 md:p-8"
+      className="min-h-screen flex items-center justify-center p-4"
       style={{
         background: `
           linear-gradient(90deg, #001f3f 1px, transparent 1px),
@@ -88,100 +20,28 @@ export default function Home() {
         backgroundColor: '#0a2342'
       }}
     >
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12 pt-8">
-          <h1 className="text-5xl md:text-6xl font-bold text-cyan-300 mb-4 drop-shadow-2xl" style={{ fontFamily: 'var(--font-orbitron)' }}>
-            BLUEPRINT AI
-          </h1>
-          <div className="h-1 w-24 mx-auto bg-cyan-400 mb-4"></div>
-          <p className="text-xl text-cyan-100 drop-shadow-lg" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
+      <div className="max-w-3xl mx-auto text-center">
+        <h1 className="text-6xl md:text-7xl font-bold text-cyan-300 mb-6 drop-shadow-2xl" style={{ fontFamily: 'var(--font-orbitron)' }}>
+          BLUEPRINT AI
+        </h1>
+        <div className="h-1 w-32 mx-auto bg-cyan-400 mb-8"></div>
+        
+        <div className="mb-12 space-y-6">
+          <p className="text-2xl md:text-3xl text-cyan-100 drop-shadow-lg" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
             THE FIRST AI STRUCTURAL ENGINEER
           </p>
-          <p className="text-base text-cyan-200 mt-2" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
+          <p className="text-xl text-cyan-200 leading-relaxed" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
             Upload what you want to build. Blueprint will tell you how to build it.
           </p>
         </div>
 
-        <div className="bg-white/95 backdrop-blur-sm border-2 border-cyan-400/30 rounded-lg shadow-2xl p-6 md:p-8 mb-6">
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-800 mb-3 uppercase tracking-wide" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-              DESCRIBE YOUR PROJECT (OPTIONAL)
-            </label>
-            <textarea
-              value={additionalText}
-              onChange={(e) => {
-                setAdditionalText(e.target.value);
-                setSteps('');
-                setError('');
-              }}
-              placeholder="Add any details about what you want to build... (e.g., 'A two-story modern house with a flat roof', 'A small garden shed', etc.)"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none resize-y min-h-[100px] text-black"
-              style={{ fontFamily: 'var(--font-roboto-mono)' }}
-            />
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-800 mb-3 uppercase tracking-wide" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-              OR UPLOAD AN IMAGE (OPTIONAL)
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageSelect}
-              className="block w-full text-sm text-gray-700 file:mr-4 file:py-3 file:px-6 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-cyan-600 file:text-white hover:file:bg-cyan-700 cursor-pointer transition-colors"
-            />
-          </div>
-
-          {selectedImage && (
-            <div className="mb-6">
-              <div className="relative w-full h-64 md:h-96 rounded-lg overflow-hidden border-2 border-gray-200">
-                <img
-                  src={selectedImage}
-                  alt="Selected house"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-            </div>
-          )}
-
-          <button
-            onClick={handleAnalyze}
-            disabled={(!selectedImage && !additionalText.trim()) || isAnalyzing}
-            className="w-full bg-cyan-600 text-white py-4 px-6 rounded-lg font-bold hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all transform hover:scale-105 disabled:transform-none flex items-center justify-center gap-2 shadow-lg uppercase tracking-wide"
-            style={{ fontFamily: 'var(--font-roboto-mono)' }}
-          >
-            {isAnalyzing ? (
-              <>
-                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Analyzing...
-              </>
-            ) : (
-              'Generate Construction Plan'
-            )}
-          </button>
-
-          {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-              {error}
-            </div>
-          )}
-        </div>
-
-        {steps && (
-          <div className="bg-white/95 backdrop-blur-sm border-2 border-cyan-400/30 rounded-lg shadow-2xl p-6 md:p-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-6 uppercase tracking-wide" style={{ fontFamily: 'var(--font-orbitron)' }}>
-              Construction Steps
-            </h2>
-            <div className="prose max-w-none">
-              <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-                {steps}
-              </pre>
-            </div>
-          </div>
-        )}
+        <button
+          onClick={() => router.push('/build')}
+          className="bg-cyan-600 text-white py-6 px-12 rounded-lg text-xl font-bold hover:bg-cyan-700 transition-all transform hover:scale-105 uppercase tracking-wide shadow-2xl"
+          style={{ fontFamily: 'var(--font-roboto-mono)' }}
+        >
+          10x Your Construction
+        </button>
       </div>
     </div>
   );
