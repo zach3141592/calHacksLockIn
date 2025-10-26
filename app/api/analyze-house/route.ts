@@ -85,7 +85,7 @@ For EACH phase, provide:
 5. Important safety considerations
 6. Quality control checkpoints
 
-Format the response as structured text.`;
+Format the response as structured text. Provide only technical information. Do not include questions, conversational phrases, or offers of additional help.`;
     }
 
     content.push({

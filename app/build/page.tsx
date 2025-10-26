@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 export default function BuildPage() {
   const router = useRouter();
+  const blueprintRef = useRef<HTMLDivElement>(null);
   
   // Step state
   const [step, setStep] = useState(1);
@@ -101,6 +104,55 @@ export default function BuildPage() {
       console.error('Error:', err);
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const downloadBlueprintsAsPDF = async () => {
+    if (!blueprintRef.current) return;
+    
+    try {
+      // Wait for background image to load
+      const backgroundImg = new Image();
+      await new Promise((resolve, reject) => {
+        backgroundImg.onload = resolve;
+        backgroundImg.onerror = reject;
+        backgroundImg.src = '/background.jpg';
+      });
+
+      // Capture the blueprint content as canvas
+      const canvas = await html2canvas(blueprintRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 0;
+
+      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+      
+      // If content is taller than one page, add new pages
+      let heightLeft = imgHeight * ratio;
+      let position = 0;
+
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', imgX, -position, imgWidth * ratio, imgHeight * ratio);
+        heightLeft -= pdfHeight;
+      }
+
+      pdf.save(`construction-blueprints-${new Date().getTime()}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      setError('Failed to generate PDF. Please try again.');
     }
   };
 
@@ -455,7 +507,9 @@ For EACH construction phase, create a technical blueprint showing:
    - Tool requirements for each step
    - Quality control checkpoints
 
-Create these blueprints using ASCII art, technical symbols, and detailed annotations as you would see on professional construction blueprints. Each diagram should be clear, technical, and include all necessary dimensions for construction.` 
+Create these blueprints using ASCII art, technical symbols, and detailed annotations as you would see on professional construction blueprints. Each diagram should be clear, technical, and include all necessary dimensions for construction.
+
+IMPORTANT: Provide only technical content. Do not include questions, conversational phrases like "Would you like me to...", or offers of additional help. Deliver the blueprints directly without any conversational elements.` 
                         }),
                       });
                       const data = await res.json();
@@ -526,17 +580,7 @@ Create these blueprints using ASCII art, technical symbols, and detailed annotat
                 Construction Blueprints
               </h2>
               <button
-                onClick={() => {
-                  const blob = new Blob([steps], { type: 'text/plain' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `construction-blueprints-${new Date().getTime()}.txt`;
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  URL.revokeObjectURL(url);
-                }}
+                onClick={downloadBlueprintsAsPDF}
                 className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 uppercase text-sm font-bold flex items-center gap-2"
                 style={{ fontFamily: 'var(--font-roboto-mono)' }}
               >
@@ -551,7 +595,7 @@ Create these blueprints using ASCII art, technical symbols, and detailed annotat
             </p>
             
             <div className="prose max-w-none overflow-y-auto" style={{ maxHeight: '70vh' }}>
-              <div className="space-y-6">
+              <div ref={blueprintRef} className="space-y-6">
                 {steps.split('###').map((section, index) => {
                   if (!section.trim()) return null;
                   const lines = section.trim().split('\n');
@@ -559,22 +603,42 @@ Create these blueprints using ASCII art, technical symbols, and detailed annotat
                   const content = lines.slice(1).join('\n');
                   
                   return (
-                    <div key={index} className="border-2 border-cyan-400/30 rounded-lg p-6 bg-cyan-50/30">
+                    <div key={index} className="border-2 border-cyan-400/30 rounded-lg p-6 overflow-hidden">
                       <h3 className="text-2xl font-bold text-gray-800 mb-4 uppercase" style={{ fontFamily: 'var(--font-orbitron)' }}>
                         {title}
                       </h3>
-                      <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-xs font-mono bg-white p-4 border border-gray-200 overflow-x-auto" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-                        {content}
-                      </pre>
+                      <div 
+                        className="rounded-lg overflow-hidden"
+                        style={{
+                          backgroundImage: 'url(/background.jpg)',
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          backgroundRepeat: 'no-repeat'
+                        }}
+                      >
+                        <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-xs font-mono p-4 overflow-x-auto bg-white/95" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
+                          {content}
+                        </pre>
+                      </div>
                     </div>
                   );
                 })}
                 
                 {!steps.includes('###') && (
-                  <div className="border-2 border-cyan-400/30 rounded-lg p-6 bg-white">
-                    <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-xs font-mono p-4 border border-gray-200 overflow-x-auto" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-                      {steps}
-                    </pre>
+                  <div className="border-2 border-cyan-400/30 rounded-lg p-6 overflow-hidden">
+                    <div 
+                      className="rounded-lg overflow-hidden"
+                      style={{
+                        backgroundImage: 'url(/background.jpg)',
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat'
+                      }}
+                    >
+                      <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-xs font-mono p-4 overflow-x-auto bg-white/95" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
+                        {steps}
+                      </pre>
+                    </div>
                   </div>
                 )}
               </div>
