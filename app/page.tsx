@@ -77,25 +77,29 @@ export default function Home() {
       }}
     >
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 drop-shadow-lg">
-            House Construction Guide
+        <div className="text-center mb-12 pt-8">
+          <h1 className="text-5xl md:text-6xl font-bold text-cyan-300 mb-4 drop-shadow-2xl" style={{ fontFamily: 'var(--font-orbitron)' }}>
+            HOUSE CONSTRUCTION GUIDE
           </h1>
-          <p className="text-lg text-white drop-shadow-md">
-            Upload an image of a house to get detailed construction steps
+          <div className="h-1 w-24 mx-auto bg-cyan-400 mb-4"></div>
+          <p className="text-xl text-cyan-100 drop-shadow-lg" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
+            AI-POWERED CONSTRUCTION ANALYSIS
+          </p>
+          <p className="text-base text-cyan-200 mt-2" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
+            Upload an architectural image to generate detailed construction steps
           </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-6">
+        <div className="bg-white/95 backdrop-blur-sm border-2 border-cyan-400/30 rounded-lg shadow-2xl p-6 md:p-8 mb-6">
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select House Image
+            <label className="block text-sm font-semibold text-gray-800 mb-3 uppercase tracking-wide" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
+              SELECT ARCHITECTURAL IMAGE
             </label>
             <input
               type="file"
               accept="image/*"
               onChange={handleImageSelect}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+              className="block w-full text-sm text-gray-700 file:mr-4 file:py-3 file:px-6 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-cyan-600 file:text-white hover:file:bg-cyan-700 cursor-pointer transition-colors"
             />
           </div>
 
@@ -114,7 +118,8 @@ export default function Home() {
           <button
             onClick={handleAnalyze}
             disabled={!selectedImage || isAnalyzing}
-            className="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white py-4 px-6 rounded-lg font-bold hover:from-cyan-700 hover:to-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all transform hover:scale-105 disabled:transform-none flex items-center justify-center gap-2 shadow-lg uppercase tracking-wide"
+            style={{ fontFamily: 'var(--font-roboto-mono)' }}
           >
             {isAnalyzing ? (
               <>
@@ -137,12 +142,12 @@ export default function Home() {
         </div>
 
         {steps && (
-          <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          <div className="bg-white/95 backdrop-blur-sm border-2 border-cyan-400/30 rounded-lg shadow-2xl p-6 md:p-8">
+            <h2 className="text-3xl font-bold text-gray-800 mb-6 uppercase tracking-wide" style={{ fontFamily: 'var(--font-orbitron)' }}>
               Construction Steps
             </h2>
             <div className="prose max-w-none">
-              <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed font-sans">
+              <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
                 {steps}
               </pre>
             </div>
