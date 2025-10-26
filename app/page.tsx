@@ -31,7 +31,8 @@ export default function Home() {
             THE FIRST AI STRUCTURAL ENGINEER
           </p>
           <p className="text-xl text-cyan-200 leading-relaxed" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-            Upload what you want to build. Blueprint will tell you how to build it.
+            Say what you want to build. <br/>
+            Blueprint tells you how to build it.
           </p>
         </div>
 

@@ -54,7 +54,17 @@ export async function POST(request: NextRequest) {
       promptText += 'Analyze the provided image and provide detailed step-by-step instructions on how to build what is shown. ';
     }
     
-    promptText += 'Break down the construction process into logical phases including: foundation, framing, exterior work, interior work, and finishing. Be specific and technical, as if explaining to a construction team.';
+    promptText += `Break down the construction process into logical phases including: foundation, framing, exterior work, interior work, and finishing. Be specific and technical, as if explaining to a construction team.
+
+For EACH phase, provide:
+1. A detailed technical description of what needs to be built
+2. List of required materials
+3. List of tools and equipment needed
+4. Step-by-step construction instructions
+5. Important safety considerations
+6. Quality control checkpoints
+
+Format the response as structured data that can be used to generate technical blueprints for each phase.`;
 
     content.push({
       type: 'text',
@@ -66,7 +76,7 @@ export async function POST(request: NextRequest) {
     
     const message = await anthropic.messages.create({
       model: 'claude-3-5-haiku-20241022',
-      max_tokens: 4096,
+      max_tokens: 8192,
       messages: [
         {
           role: 'user',
