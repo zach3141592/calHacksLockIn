@@ -8,10 +8,12 @@ const anthropic = new Anthropic({
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get('image') as File;
+    const file = formData.get('image') as File | null;
+    const text = formData.get('text') as string | null;
 
-    if (!file) {
-      return NextResponse.json({ error: 'No image provided' }, { status: 400 });
+    // Need either image or text (or both)
+    if (!file && !text) {
+      return NextResponse.json({ error: 'Please provide an image, text, or both' }, { status: 400 });
     }
 
     // Validate API key
@@ -20,19 +22,47 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
     }
 
-    // Convert file to base64
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const base64Image = buffer.toString('base64');
+    // Build content array
+    const content: any[] = [];
 
-    // Determine media type (default to jpeg if not provided)
-    const mediaType = file.type || 'image/jpeg';
+    // Add image if provided
+    if (file) {
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const base64Image = buffer.toString('base64');
+      const mediaType = file.type || 'image/jpeg';
 
-    console.log('Sending image to Claude API, size:', buffer.length, 'bytes, type:', mediaType);
+      console.log('Sending image to Claude API, size:', buffer.length, 'bytes, type:', mediaType);
+
+      content.push({
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: mediaType,
+          data: base64Image,
+        },
+      });
+    }
+
+    // Build the prompt text
+    let promptText = '';
+    if (text) {
+      promptText = `The user wants to build: ${text}. `;
+    }
+    
+    if (file) {
+      promptText += 'Analyze the provided image and provide detailed step-by-step instructions on how to build what is shown. ';
+    }
+    
+    promptText += 'Break down the construction process into logical phases including: foundation, framing, exterior work, interior work, and finishing. Be specific and technical, as if explaining to a construction team.';
+
+    content.push({
+      type: 'text',
+      text: promptText,
+    });
 
     // Send to Claude API
     console.log('API Key exists:', !!process.env.ANTHROPIC_API_KEY);
-    console.log('Image size:', buffer.length, 'bytes');
     
     const message = await anthropic.messages.create({
       model: 'claude-3-5-haiku-20241022',
@@ -40,20 +70,7 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: mediaType,
-                data: base64Image,
-              },
-            },
-            {
-              type: 'text',
-              text: 'Analyze this house image and provide detailed step-by-step instructions on how to build it. Break down the construction process into logical phases including: foundation, framing, exterior work, interior work, and finishing. Be specific and technical, as if explaining to a construction team.',
-            },
-          ],
+          content: content,
         },
       ],
     });

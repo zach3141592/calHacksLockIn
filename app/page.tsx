@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 export default function Home() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [additionalText, setAdditionalText] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [steps, setSteps] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -22,19 +23,30 @@ export default function Home() {
   };
 
   const handleAnalyze = async () => {
-    if (!selectedImage) return;
+    // Need either image or text (or both)
+    if (!selectedImage && !additionalText.trim()) {
+      setError('Please upload an image, enter text, or both.');
+      return;
+    }
 
     setIsAnalyzing(true);
     setError('');
 
     try {
-      // Convert data URL back to file
-      const response = await fetch(selectedImage);
-      const blob = await response.blob();
-      const file = new File([blob], 'house.jpg', { type: blob.type });
-
       const formData = new FormData();
-      formData.append('image', file);
+      
+      // Add image if selected
+      if (selectedImage) {
+        const response = await fetch(selectedImage);
+        const blob = await response.blob();
+        const file = new File([blob], 'house.jpg', { type: blob.type });
+        formData.append('image', file);
+      }
+      
+      // Add text if provided
+      if (additionalText.trim()) {
+        formData.append('text', additionalText);
+      }
 
       const res = await fetch('/api/analyze-house', {
         method: 'POST',
@@ -93,7 +105,24 @@ export default function Home() {
         <div className="bg-white/95 backdrop-blur-sm border-2 border-cyan-400/30 rounded-lg shadow-2xl p-6 md:p-8 mb-6">
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-800 mb-3 uppercase tracking-wide" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-              SELECT IMAGE
+              DESCRIBE YOUR PROJECT (OPTIONAL)
+            </label>
+            <textarea
+              value={additionalText}
+              onChange={(e) => {
+                setAdditionalText(e.target.value);
+                setSteps('');
+                setError('');
+              }}
+              placeholder="Add any details about what you want to build... (e.g., 'A two-story modern house with a flat roof', 'A small garden shed', etc.)"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none resize-y min-h-[100px] text-black"
+              style={{ fontFamily: 'var(--font-roboto-mono)' }}
+            />
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-800 mb-3 uppercase tracking-wide" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
+              OR UPLOAD AN IMAGE (OPTIONAL)
             </label>
             <input
               type="file"
@@ -117,8 +146,8 @@ export default function Home() {
 
           <button
             onClick={handleAnalyze}
-            disabled={!selectedImage || isAnalyzing}
-            className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white py-4 px-6 rounded-lg font-bold hover:from-cyan-700 hover:to-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all transform hover:scale-105 disabled:transform-none flex items-center justify-center gap-2 shadow-lg uppercase tracking-wide"
+            disabled={(!selectedImage && !additionalText.trim()) || isAnalyzing}
+            className="w-full bg-cyan-600 text-white py-4 px-6 rounded-lg font-bold hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all transform hover:scale-105 disabled:transform-none flex items-center justify-center gap-2 shadow-lg uppercase tracking-wide"
             style={{ fontFamily: 'var(--font-roboto-mono)' }}
           >
             {isAnalyzing ? (
@@ -130,7 +159,7 @@ export default function Home() {
                 Analyzing...
               </>
             ) : (
-              'Analyze House'
+              'Generate Construction Plan'
             )}
           </button>
 
