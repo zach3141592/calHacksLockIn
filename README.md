@@ -1,14 +1,6 @@
 # Blueprint AI
 
-A Next.js web application that analyzes house images using Claude AI and generates detailed construction steps.
-
-## Features
-
-- 📤 Upload house images
-- 🤖 AI-powered analysis using Claude API
-- 📋 Detailed construction steps and instructions
-- 🎨 Beautiful, modern UI with Tailwind CSS
-- ⚡ Built with Next.js 15 and TypeScript
+the first AI structural engineer -> you say what you want to build, blueprint tells you how to build it
 
 ## Prerequisites
 

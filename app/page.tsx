@@ -83,17 +83,17 @@ export default function Home() {
           </h1>
           <div className="h-1 w-24 mx-auto bg-cyan-400 mb-4"></div>
           <p className="text-xl text-cyan-100 drop-shadow-lg" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-            AI-POWERED CONSTRUCTION ANALYSIS
+            THE FIRST AI STRUCTURAL ENGINEER
           </p>
           <p className="text-base text-cyan-200 mt-2" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-            Upload an architectural image to generate detailed construction steps
+            Upload what you want to build. Blueprint will tell you how to build it.
           </p>
         </div>
 
         <div className="bg-white/95 backdrop-blur-sm border-2 border-cyan-400/30 rounded-lg shadow-2xl p-6 md:p-8 mb-6">
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-800 mb-3 uppercase tracking-wide" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-              SELECT ARCHITECTURAL IMAGE
+              SELECT IMAGE
             </label>
             <input
               type="file"
