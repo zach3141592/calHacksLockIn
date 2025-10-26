@@ -15,7 +15,7 @@ const orbitron = Orbitron({
 });
 
 export const metadata: Metadata = {
-  title: "House Construction Guide",
+  title: "Blueprint AI",
   description: "AI-powered house construction analysis using Claude AI",
   icons: {
     icon: '/blueprint.png',

@@ -1,4 +1,4 @@
-# �� House Construction Guide
+# Blueprint AI
 
 A Next.js web application that analyzes house images using Claude AI and generates detailed construction steps.
 
@@ -18,6 +18,7 @@ A Next.js web application that analyzes house images using Claude AI and generat
 ## Setup Instructions
 
 1. **Install dependencies:**
+
    ```bash
    npm install
    ```
@@ -25,17 +26,19 @@ A Next.js web application that analyzes house images using Claude AI and generat
 2. **Configure your Claude API key:**
 
    Open the `.env` file and add your API key:
+
    ```
    ANTHROPIC_API_KEY=your-api-key-here
    ```
 
 3. **Run the development server:**
+
    ```bash
    npm run dev
    ```
 
 4. **Open your browser:**
-   
+
    Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## Usage

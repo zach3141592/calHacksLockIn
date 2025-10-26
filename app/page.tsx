@@ -79,7 +79,7 @@ export default function Home() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12 pt-8">
           <h1 className="text-5xl md:text-6xl font-bold text-cyan-300 mb-4 drop-shadow-2xl" style={{ fontFamily: 'var(--font-orbitron)' }}>
-            HOUSE CONSTRUCTION GUIDE
+            BLUEPRINT AI
           </h1>
           <div className="h-1 w-24 mx-auto bg-cyan-400 mb-4"></div>
           <p className="text-xl text-cyan-100 drop-shadow-lg" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
