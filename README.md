@@ -2,6 +2,8 @@
 
 the first AI structural engineer -> you say what you want to build, blueprint tells you how to build it
 
+made for calhacks 2025 but stopped cuz wifi was shit
+
 ## Prerequisites
 
 - Node.js 18+ installed
